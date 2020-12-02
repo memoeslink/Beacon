@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE resources [<!ENTITY appname "Beacon">]>
+
+<resources>
+    <string name="app_name">&appname;</string>
+    <string name="about">
+        <![CDATA[
+        <big><b>Beacon</b></big>
+        <br><b>Version: 1.0.7</b>
+        <br><br>2014-2018 Memoeslink Futura
+        <br><small>Guillermo Almaguer (memoeslink)</small>
+        <br><small>memocad@gmail.com</small>
+        <br><br>Flashlight app
+        <br><br><font color=#53E3B3>Images:</font>
+        <br><i><font color=#FFFDC4>• Dimitry Miroliubov</font></i> [<font color=#99BAD1>Flaticon Basic License</font>] (<cite>http://www.flaticon.com/</cite>)
+        <br><i><font color=#FFFDC4>• Freepik</font></i> [<font color=#99BAD1>Flaticon Basic License</font>] (<cite>http://www.flaticon.com/</cite>)
+        <br><i><font color=#FFFDC4>• Nikita Golubev</font></i> [<font color=#99BAD1>Flaticon Basic License</font>] (<cite>http://www.flaticon.com/</cite>)
+        <br><i><font color=#FFFDC4>• Roundicons</font></i> [<font color=#99BAD1>Flaticon Basic License</font>] (<cite>http://www.flaticon.com/</cite>)
+        <br><br><font color=#53E3B3>Code:</font>
+        <br><i><font color=#FDFCDA>• Simone Pessotto: </font><font color=#FFFDC4>Android Material Color Picker Dialog</font></i> [<font color=#FF9BB4>MIT License</font>] (<a href="https://github.com/Pes8/android-material-color-picker-dialog/">https://github.com/</a>)
+        <br><i><font color=#B9BCEE>• How do I disable orientation change on Android?</font></i> [<font color=#FF9BB4>MIT License</font>] (<a href="https://stackoverflow.com/questions/1512045/how-do-i-disable-orientation-change-on-android/">http://stackoverflow.com/</a>)
+        <br><i><font color=#B9BCEE>• How to check if device has flashlight LED (Android)</font></i> [<font color=#FF9BB4>MIT License</font>] (<a href="https://stackoverflow.com/questions/13413938/how-to-check-if-device-has-flash-light-led-android/">http://stackoverflow.com/</a>)
+        ]]>
+    </string>
+    <string name="action_exit">Exit</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="dialog_title">About &appname;</string>
+    <string name="menu_about">About</string>
+    <string-array name="options">
+        <item>Go to settings</item>
+        <item>Exit</item>
+    </string-array>
+</resources>
