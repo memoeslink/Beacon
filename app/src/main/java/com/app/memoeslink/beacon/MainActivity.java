@@ -11,14 +11,12 @@ import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.drawable.GradientDrawable;
-import android.hardware.Camera;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.text.Html;
 import android.text.Spanned;
@@ -93,16 +91,12 @@ public class MainActivity extends CommonActivity {
     private boolean defined = false;
     private boolean lighting = false;
     private boolean locked = false;
-    private int[] cameraArray = {0, 0};
-    private int[] cameraInfo;
     private int[] milliseconds = {0, 0};
     private Illumination type = Illumination.NONE;
     private Mode mode = Mode.DEFAULT;
     private Integer colorInteger = null;
     private Thread thread = null;
     private CameraManager cameraManager;
-    private Camera[] cameras = new Camera[2];
-    private Camera.Parameters[] parameters = new Camera.Parameters[2];
     private SensorManager sensorManager;
     private Sensor sensor;
     private AdView adView;
@@ -144,9 +138,7 @@ public class MainActivity extends CommonActivity {
         RequestConfiguration requestConfiguration = new RequestConfiguration.Builder().build();
 
         if (BuildConfig.DEBUG)
-            requestConfiguration = new RequestConfiguration.Builder()
-                    .setTestDeviceIds(testDevices)
-                    .build();
+            requestConfiguration = new RequestConfiguration.Builder().setTestDeviceIds(testDevices).build();
         MobileAds.setRequestConfiguration(requestConfiguration);
         adRequest = new AdRequest.Builder().build();
 
@@ -173,15 +165,12 @@ public class MainActivity extends CommonActivity {
         leftSquare.setOnClickListener(view -> {
             showViews();
 
-            if ((Build.VERSION.SDK_INT < Build.VERSION_CODES.M && (cameraArray[0] == 1 || cameraArray[1] == 1 || flashlightEnabled))
-                    || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && flashlightEnabled && permissionGranted)) {
+            if (flashlightEnabled && permissionGranted) {
                 type = type.next();
                 startType();
             } else {
-                if (type == Illumination.NONE)
-                    type = type.next();
-                else
-                    type = Illumination.NONE;
+                if (type == Illumination.NONE) type = type.next();
+                else type = Illumination.NONE;
             }
         });
 
@@ -251,8 +240,7 @@ public class MainActivity extends CommonActivity {
         showViews();
 
         //Restart lights
-        if (!lighting && (type == Illumination.FLASH || type == Illumination.ALL))
-            turnOnLights();
+        if (!lighting && (type == Illumination.FLASH || type == Illumination.ALL)) turnOnLights();
 
         //Show ads
         prepareAds(false);
@@ -267,8 +255,7 @@ public class MainActivity extends CommonActivity {
                     }
 
                     if (!busy) {
-                        if (milliseconds[0] < 5000)
-                            milliseconds[0]++;
+                        if (milliseconds[0] < 5000) milliseconds[0]++;
                         else {
                             runOnUiThread(() -> {
                                 busy = true;
@@ -283,8 +270,7 @@ public class MainActivity extends CommonActivity {
 
                                 if (SOS_SEQUENCE.containsKey(milliseconds[1]))
                                     colorInteger = SOS_SEQUENCE.get(milliseconds[1]);
-                                else
-                                    defined = false;
+                                else defined = false;
 
                                 if (defined && colorInteger != null) {
                                     runOnUiThread(() -> {
@@ -295,8 +281,7 @@ public class MainActivity extends CommonActivity {
                                     });
                                 }
                                 milliseconds[1]++;
-                            } else
-                                milliseconds[1] = 0;
+                            } else milliseconds[1] = 0;
                         } else {
                             milliseconds[1] = 0;
                             final int color = getColor();
@@ -336,8 +321,7 @@ public class MainActivity extends CommonActivity {
         super.onConfigurationChanged(configuration);
         prepareAds(true);
 
-        if (picker != null && picker.isShowing())
-            showPicker();
+        if (picker != null && picker.isShowing()) showPicker();
     }
 
     @Override
@@ -374,8 +358,7 @@ public class MainActivity extends CommonActivity {
     }
 
     public void startType() {
-        if (locked)
-            return;
+        if (locked) return;
         locked = true;
 
         switch (type) {
@@ -402,8 +385,7 @@ public class MainActivity extends CommonActivity {
                 layoutParams.screenBrightness = 1.0f;
                 getWindow().setAttributes(layoutParams);
 
-                if (!lighting)
-                    turnOnLights();
+                if (!lighting) turnOnLights();
                 break;
             default:
                 break;
@@ -435,8 +417,7 @@ public class MainActivity extends CommonActivity {
     public void showPicker() {
         int color = getColor();
 
-        if (picker != null && picker.isShowing())
-            picker.dismiss();
+        if (picker != null && picker.isShowing()) picker.dismiss();
         picker = new ColorPicker(MainActivity.this, Color.red(color), Color.green(color), Color.blue(color)); //Define default color for ColorPicker
 
         //Set listener
@@ -492,98 +473,20 @@ public class MainActivity extends CommonActivity {
     }
 
     public boolean hasFlash() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            cameraInfo = new int[]{Camera.CameraInfo.CAMERA_FACING_BACK, Camera.CameraInfo.CAMERA_FACING_FRONT};
-
-            try {
-                cameras[0] = Camera.open(cameraInfo[0]);
-
-                if (isFlashlightThere(cameras[0]))
-                    cameraArray[0] = 1;
-                else
-                    cameraArray[0] = 0;
-            } catch (Exception e) {
-                cameras[0] = null;
-            }
-
-            try {
-                cameras[1] = Camera.open(cameraInfo[1]);
-
-                if (isFlashlightThere(cameras[1]))
-                    cameraArray[1] = 1;
-                else
-                    cameraArray[1] = 0;
-            } catch (Exception e) {
-                cameras[1] = null;
-            }
-
-            return cameraArray[0] == 1 || cameraArray[1] == 1;
-        } else {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 0);
-            else
-                permissionGranted = true;
-            return getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
-        }
-    }
-
-    public boolean isFlashlightThere(Camera camera) {
-        if (camera == null)
-            return false;
-        Camera.Parameters parameters = camera.getParameters();
-
-        if (parameters.getFlashMode() == null)
-            return false;
-        List<String> supportedFlashModes = parameters.getSupportedFlashModes();
-
-        return supportedFlashModes != null && !supportedFlashModes.isEmpty() && (supportedFlashModes.size() != 1 || !supportedFlashModes.get(0).equals(Camera.Parameters.FLASH_MODE_OFF));
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 0);
+        else permissionGranted = true;
+        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
     }
 
     private void turnOnLights() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (permissionGranted)
-                toggleLights(true);
-        } else {
-            boolean successful = false;
-
-            for (int n = -1, size = cameras.length; ++n < size; ) {
-                try {
-                    if (cameras[n] == null)
-                        cameras[n] = Camera.open(cameraInfo[n]);
-                    parameters[n] = cameras[n].getParameters();
-                    parameters[n].setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
-                    cameras[n].setParameters(parameters[n]);
-                    cameras[n].startPreview();
-                    successful = true;
-                } catch (Exception e) {
-                    cameras[n] = null;
-                }
-            }
-            lighting = successful;
-        }
+        if (permissionGranted) toggleLights(true);
     }
 
     private void turnOffLights() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (permissionGranted)
-                toggleLights(false);
-        } else {
-            for (int n = -1; ++n < cameras.length; ) {
-                try {
-                    if (cameras[n] != null) {
-                        parameters[n].setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-                        cameras[n].stopPreview();
-                        cameras[n].release();
-                        cameras[n] = null;
-                    }
-                } catch (Exception ignored) {
-                }
-            }
-            lighting = false;
-        }
+        if (permissionGranted) toggleLights(false);
     }
 
-    @androidx.annotation.RequiresApi(api = Build.VERSION_CODES.M)
     private void toggleLights(boolean activated) {
         cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         String cameraId;
@@ -652,8 +555,7 @@ public class MainActivity extends CommonActivity {
     }
 
     private void prepareAds(boolean restarted) {
-        if (restarted)
-            destroyAd();
+        if (restarted) destroyAd();
 
         if (!adAdded) {
             adView = new AdView(MainActivity.this);
@@ -710,13 +612,7 @@ public class MainActivity extends CommonActivity {
     }
 
     private Spanned fromHtml(String html) {
-        Spanned result;
-
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N)
-            result = Html.fromHtml(html, Html.FROM_HTML_MODE_LEGACY);
-        else
-            result = Html.fromHtml(html);
-        return result;
+        return Html.fromHtml(html, Html.FROM_HTML_MODE_LEGACY);
     }
 
     private void setGrayFilter(ImageView imageView) {
