@@ -233,7 +233,8 @@ public class MainActivity extends CommonActivity {
         showViews();
 
         //Restart lights
-        if (!illuminating && (type == Illumination.FLASH || type == Illumination.ALL)) turnOnLights();
+        if (!illuminating && (type == Illumination.FLASH || type == Illumination.ALL))
+            turnOnLights();
 
         //Show ads
         prepareAds(false);
