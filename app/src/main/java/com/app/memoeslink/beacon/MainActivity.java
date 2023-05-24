@@ -88,7 +88,7 @@ public class MainActivity extends CommonActivity {
     private boolean permissionGranted = false;
     private boolean busy = false;
     private boolean defined = false;
-    private boolean lighting = false;
+    private boolean illuminating = false;
     private boolean locked = false;
     private int[] milliseconds = {0, 0};
     private Illumination type = Illumination.NONE;
@@ -233,7 +233,7 @@ public class MainActivity extends CommonActivity {
         showViews();
 
         //Restart lights
-        if (!lighting && (type == Illumination.FLASH || type == Illumination.ALL)) turnOnLights();
+        if (!illuminating && (type == Illumination.FLASH || type == Illumination.ALL)) turnOnLights();
 
         //Show ads
         prepareAds(false);
@@ -378,7 +378,7 @@ public class MainActivity extends CommonActivity {
                 layoutParams.screenBrightness = 1.0f;
                 getWindow().setAttributes(layoutParams);
 
-                if (!lighting) turnOnLights();
+                if (!illuminating) turnOnLights();
                 break;
             default:
                 break;
@@ -501,7 +501,7 @@ public class MainActivity extends CommonActivity {
             } catch (Exception ignored) {
             }
         }
-        lighting = activated && successful;
+        illuminating = activated && successful;
     }
 
     public void lockScreenOrientation() {
