@@ -11,9 +11,6 @@ import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.drawable.GradientDrawable;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraManager;
 import android.os.Bundle;
@@ -178,16 +175,6 @@ public class MainActivity extends CommonActivity {
             mode = mode.next();
             startMode();
         });
-
-        SensorEventListener listener = new SensorEventListener() {
-            @Override
-            public void onSensorChanged(SensorEvent sensorEvent) {
-            }
-
-            @Override
-            public void onAccuracyChanged(Sensor sensor, int i) {
-            }
-        };
     }
 
     @Override
@@ -356,33 +343,32 @@ public class MainActivity extends CommonActivity {
         locked = true;
 
         switch (type) {
-            case NONE:
+            case NONE -> {
                 light.setImageResource(R.drawable.ic_turned_off);
                 layoutParams.screenBrightness = 0.0f;
                 getWindow().setAttributes(layoutParams);
                 turnOffLights();
-                break;
-            case SCREEN:
+            }
+            case SCREEN -> {
                 light.setImageResource(R.drawable.ic_brightness);
                 layoutParams.screenBrightness = 1.0f;
                 getWindow().setAttributes(layoutParams);
                 turnOffLights();
-                break;
-            case FLASH:
+            }
+            case FLASH -> {
                 light.setImageResource(R.drawable.ic_mobile_phone);
                 layoutParams.screenBrightness = 0.0f;
                 getWindow().setAttributes(layoutParams);
                 turnOnLights();
-                break;
-            case ALL:
+            }
+            case ALL -> {
                 light.setImageResource(R.drawable.ic_turned_on);
                 layoutParams.screenBrightness = 1.0f;
                 getWindow().setAttributes(layoutParams);
-
                 if (!illuminating) turnOnLights();
-                break;
-            default:
-                break;
+            }
+            default -> {
+            }
         }
         preferences.edit().putInt("type", type.ordinal()).apply();
         locked = false;
@@ -390,20 +376,20 @@ public class MainActivity extends CommonActivity {
 
     public void startMode() {
         switch (mode) {
-            case DEFAULT:
+            case DEFAULT -> {
                 pattern.setImageResource(R.drawable.ic_pantone);
                 removeGrayFilter(cube);
                 middleSquare.setClickable(true);
                 middleSquare.setEnabled(true);
-                break;
-            case SOS:
+            }
+            case SOS -> {
                 pattern.setImageResource(R.drawable.ic_help);
                 setGrayFilter(cube);
                 middleSquare.setClickable(false);
                 middleSquare.setEnabled(false);
-                break;
-            default:
-                break;
+            }
+            default -> {
+            }
         }
         preferences.edit().putInt("mode", mode.ordinal()).apply();
     }
@@ -513,33 +499,25 @@ public class MainActivity extends CommonActivity {
         // Search for the natural position of the device
         if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE && (rotation == Surface.ROTATION_0 || rotation == Surface.ROTATION_180) || configuration.orientation == Configuration.ORIENTATION_PORTRAIT && (rotation == Surface.ROTATION_90 || rotation == Surface.ROTATION_270)) {
             switch (rotation) { //Natural position is Landscape
-                case Surface.ROTATION_0:
-                    this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-                    break;
-                case Surface.ROTATION_90:
-                    this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT);
-                    break;
-                case Surface.ROTATION_180:
-                    this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
-                    break;
-                case Surface.ROTATION_270:
-                    this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-                    break;
+                case Surface.ROTATION_0 ->
+                        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                case Surface.ROTATION_90 ->
+                        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT);
+                case Surface.ROTATION_180 ->
+                        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
+                case Surface.ROTATION_270 ->
+                        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
             }
         } else {
             switch (rotation) { //Natural position is Portrait
-                case Surface.ROTATION_0:
-                    this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-                    break;
-                case Surface.ROTATION_90:
-                    this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-                    break;
-                case Surface.ROTATION_180:
-                    this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT);
-                    break;
-                case Surface.ROTATION_270:
-                    this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
-                    break;
+                case Surface.ROTATION_0 ->
+                        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                case Surface.ROTATION_90 ->
+                        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                case Surface.ROTATION_180 ->
+                        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT);
+                case Surface.ROTATION_270 ->
+                        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
             }
         }
     }
