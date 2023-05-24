@@ -49,7 +49,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class MainActivity extends CommonActivity {
-    private static final HashMap<Integer, Integer> SOS_SEQUENCE = new HashMap<Integer, Integer>() {{
+    private static final HashMap<Integer, Integer> SOS_SEQUENCE = new HashMap<>() {{
         put(0, Color.WHITE);
         put(200, Color.BLACK);
         put(400, Color.WHITE);
@@ -117,7 +117,7 @@ public class MainActivity extends CommonActivity {
         light = findViewById(R.id.light_icon);
         pattern = findViewById(R.id.pattern_icon);
         cursor = findViewById(R.id.cursor);
-        setShapeColor(getColor()); //Modify shape color
+        setShapeColor(getColor(preferences.getInt("color", Color.WHITE))); //Modify shape color
 
         //Initialize preferences
         type = Illumination.values()[preferences.getInt("type", Illumination.NONE.ordinal())];
@@ -206,7 +206,7 @@ public class MainActivity extends CommonActivity {
         System.out.println("Has flashlight: " + flashlightEnabled);
 
         layout.post(() -> {
-            int color = getColor();
+            int color = getColor(preferences.getInt("color", Color.WHITE));
             layout.setBackgroundColor(color);
             setShapeColor(color);
             startType();
@@ -265,7 +265,7 @@ public class MainActivity extends CommonActivity {
                             } else milliseconds[1] = 0;
                         } else {
                             milliseconds[1] = 0;
-                            final int color = getColor();
+                            final int color = getColor(preferences.getInt("color", Color.WHITE));
 
                             runOnUiThread(() -> {
                                 busy = true;
@@ -395,16 +395,16 @@ public class MainActivity extends CommonActivity {
     }
 
     public void showPicker() {
-        int color = getColor();
+        int color = getColor(preferences.getInt("color", Color.WHITE));
 
         if (picker != null && picker.isShowing()) picker.dismiss();
         picker = new ColorPicker(MainActivity.this, Color.red(color), Color.green(color), Color.blue(color)); //Define default color for ColorPicker
 
         //Set listener
-        picker.setCallback(color1 -> {
-            setColor(color1);
-            layout.setBackgroundColor(color1);
-            setShapeColor(color1);
+        picker.setCallback(pickedColor -> {
+            preferences.edit().putInt("color", pickedColor).apply();
+            layout.setBackgroundColor(pickedColor);
+            setShapeColor(pickedColor);
         });
         picker.show();
     }
@@ -427,14 +427,6 @@ public class MainActivity extends CommonActivity {
         rightSquare.setVisibility(View.GONE);
         cursor.setVisibility(View.INVISIBLE);
         milliseconds[0] = 0;
-    }
-
-    public int getColor() {
-        return preferences.getInt("color", Color.WHITE);
-    }
-
-    public void setColor(int color) {
-        preferences.edit().putInt("color", color).apply();
     }
 
     public void setShapeColor(int color) {
