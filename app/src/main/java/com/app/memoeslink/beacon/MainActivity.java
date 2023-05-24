@@ -14,7 +14,6 @@ import android.graphics.drawable.GradientDrawable;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraManager;
 import android.os.Bundle;
@@ -83,7 +82,7 @@ public class MainActivity extends CommonActivity {
     private ImageView pattern;
     private ImageView cursor;
     private ColorPicker picker;
-    private boolean flashlightEnabled;
+    private boolean flashlightEnabled = false;
     private boolean running = true;
     private boolean adAdded = false;
     private boolean permissionGranted = false;
@@ -96,9 +95,6 @@ public class MainActivity extends CommonActivity {
     private Mode mode = Mode.DEFAULT;
     private Integer colorInteger = null;
     private Thread thread = null;
-    private CameraManager cameraManager;
-    private SensorManager sensorManager;
-    private Sensor sensor;
     private AdView adView;
     private AdRequest adRequest;
     private AlertDialog dialog;
@@ -124,8 +120,6 @@ public class MainActivity extends CommonActivity {
         light = findViewById(R.id.light_icon);
         pattern = findViewById(R.id.pattern_icon);
         cursor = findViewById(R.id.cursor);
-        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        sensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
         setShapeColor(getColor()); //Modify shape color
 
         //Initialize preferences
@@ -194,7 +188,6 @@ public class MainActivity extends CommonActivity {
             public void onAccuracyChanged(Sensor sensor, int i) {
             }
         };
-        sensorManager.registerListener(listener, sensor, SensorManager.SENSOR_DELAY_UI);
     }
 
     @Override
@@ -488,7 +481,7 @@ public class MainActivity extends CommonActivity {
     }
 
     private void toggleLights(boolean activated) {
-        cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+        CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         String cameraId;
         int size;
 

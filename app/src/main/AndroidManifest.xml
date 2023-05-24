@@ -14,9 +14,6 @@
     <uses-feature
         android:name="android.hardware.camera2"
         android:required="false" />
-    <uses-feature
-        android:name="android.hardware.camera.flash"
-        android:required="false" />
 
     <application
         android:name="com.app.memoeslink.beacon.ApplicationContext"
