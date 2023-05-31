@@ -117,7 +117,7 @@ public class MainActivity extends CommonActivity {
         light = findViewById(R.id.light_icon);
         pattern = findViewById(R.id.pattern_icon);
         cursor = findViewById(R.id.cursor);
-        setShapeColor(getColor(preferences.getInt("color", Color.WHITE))); //Modify shape color
+        setShapeColor(preferences.getInt("color", Color.WHITE)); //Modify shape color
 
         //Initialize preferences
         type = Illumination.values()[preferences.getInt("type", Illumination.NONE.ordinal())];
@@ -206,7 +206,7 @@ public class MainActivity extends CommonActivity {
         System.out.println("Has flashlight: " + flashlightEnabled);
 
         layout.post(() -> {
-            int color = getColor(preferences.getInt("color", Color.WHITE));
+            int color = preferences.getInt("color", Color.WHITE);
             layout.setBackgroundColor(color);
             setShapeColor(color);
             startType();
@@ -265,7 +265,7 @@ public class MainActivity extends CommonActivity {
                             } else milliseconds[1] = 0;
                         } else {
                             milliseconds[1] = 0;
-                            final int color = getColor(preferences.getInt("color", Color.WHITE));
+                            final int color = preferences.getInt("color", Color.WHITE);
 
                             runOnUiThread(() -> {
                                 busy = true;
@@ -395,7 +395,7 @@ public class MainActivity extends CommonActivity {
     }
 
     public void showPicker() {
-        int color = getColor(preferences.getInt("color", Color.WHITE));
+        int color = preferences.getInt("color", Color.WHITE);
 
         if (picker != null && picker.isShowing()) picker.dismiss();
         picker = new ColorPicker(MainActivity.this, Color.red(color), Color.green(color), Color.blue(color)); //Define default color for ColorPicker
