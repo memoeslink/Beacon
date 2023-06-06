@@ -8,7 +8,7 @@ import androidx.appcompat.app.AppCompatDelegate;
  * Created by Memoeslink on 17/10/2017.
  */
 
-public class ApplicationContext extends Application {
+public class BaseApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();

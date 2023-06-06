@@ -6,13 +6,13 @@ public enum Illumination {
     FLASH,
     ALL;
 
-    private static Illumination[] values = values();
+    private static final Illumination[] VALUES = values();
 
     public Illumination previous() {
-        return values[(this.ordinal() + -1 + values.length) % values.length];
+        return VALUES[(this.ordinal() + -1 + VALUES.length) % VALUES.length];
     }
 
     public Illumination next() {
-        return values[(this.ordinal() + 1) % values.length];
+        return VALUES[(this.ordinal() + 1) % VALUES.length];
     }
 }

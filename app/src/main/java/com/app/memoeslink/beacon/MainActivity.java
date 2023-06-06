@@ -4,15 +4,12 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.drawable.GradientDrawable;
-import android.hardware.camera2.CameraAccessException;
-import android.hardware.camera2.CameraManager;
 import android.os.Bundle;
 import android.text.Html;
 import android.text.Spanned;
@@ -22,7 +19,6 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
-import android.view.Surface;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
@@ -69,25 +65,24 @@ public class MainActivity extends CommonActivity {
         put(5200, Color.WHITE);
         put(5400, Color.BLACK);
     }};
-    private RelativeLayout layout;
-    private RelativeLayout adContainer;
-    private LinearLayout leftSquare;
-    private LinearLayout middleSquare;
-    private LinearLayout rightSquare;
-    private ImageView cube;
-    private ImageView light;
-    private ImageView pattern;
-    private ImageView cursor;
+    private final int[] milliseconds = {0, 0};
+    private RelativeLayout rlMain;
+    private RelativeLayout rlAdContainer;
+    private LinearLayout llAdContent;
+    private LinearLayout llLeftSquare;
+    private LinearLayout llMiddleSquare;
+    private LinearLayout llRightSquare;
+    private ImageView ivCube;
+    private ImageView ivLight;
+    private ImageView ivPattern;
+    private ImageView ivCursor;
+    private ImageView ivDismiss;
     private ColorPicker picker;
-    private boolean flashlightEnabled = false;
     private boolean running = true;
     private boolean adAdded = false;
-    private boolean permissionGranted = false;
     private boolean busy = false;
     private boolean defined = false;
-    private boolean illuminating = false;
     private boolean locked = false;
-    private int[] milliseconds = {0, 0};
     private Illumination type = Illumination.NONE;
     private Mode mode = Mode.DEFAULT;
     private Integer colorInteger = null;
@@ -108,22 +103,24 @@ public class MainActivity extends CommonActivity {
         setContentView(R.layout.activity_main);
         MobileAds.initialize(MainActivity.this, MainActivity::onInitializationComplete);
         preferences = getSharedPreferences("preferences", Context.MODE_PRIVATE);
-        layout = findViewById(R.id.main);
-        adContainer = findViewById(R.id.ad_container);
-        leftSquare = findViewById(R.id.left_square);
-        middleSquare = findViewById(R.id.middle_square);
-        rightSquare = findViewById(R.id.right_square);
-        cube = findViewById(R.id.cube_icon);
-        light = findViewById(R.id.light_icon);
-        pattern = findViewById(R.id.pattern_icon);
-        cursor = findViewById(R.id.cursor);
+        rlMain = findViewById(R.id.main);
+        rlAdContainer = findViewById(R.id.ad_container);
+        llAdContent = findViewById(R.id.ad_content);
+        llLeftSquare = findViewById(R.id.left_square);
+        llMiddleSquare = findViewById(R.id.middle_square);
+        llRightSquare = findViewById(R.id.right_square);
+        ivCube = findViewById(R.id.cube_icon);
+        ivLight = findViewById(R.id.light_icon);
+        ivPattern = findViewById(R.id.pattern_icon);
+        ivCursor = findViewById(R.id.cursor);
+        ivDismiss = findViewById(R.id.ad_dismiss);
         setShapeColor(preferences.getInt("color", Color.WHITE)); //Modify shape color
 
-        //Initialize preferences
+        // Initialize preferences
         type = Illumination.values()[preferences.getInt("type", Illumination.NONE.ordinal())];
         mode = Mode.values()[preferences.getInt("mode", Mode.DEFAULT.ordinal())];
 
-        //Request ads
+        // Request ads
         List<String> testDevices = new ArrayList<>();
         testDevices.add(AdRequest.DEVICE_ID_EMULATOR);
         RequestConfiguration requestConfiguration = new RequestConfiguration.Builder().build();
@@ -133,12 +130,12 @@ public class MainActivity extends CommonActivity {
         MobileAds.setRequestConfiguration(requestConfiguration);
         adRequest = new AdRequest.Builder().build();
 
-        //Keep screen on
+        // Keep screen on
         layoutParams = getWindow().getAttributes();
-        layoutParams.flags = WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
+        Screen.setContinuance(MainActivity.this, true);
         getWindow().setAttributes(layoutParams);
 
-        //Define dialog
+        // Define dialog
         LayoutInflater layoutInflater = LayoutInflater.from(this);
         View v = layoutInflater.inflate(R.layout.alert_about, null);
 
@@ -152,29 +149,29 @@ public class MainActivity extends CommonActivity {
         builder.setNeutralButton("OK", null);
         dialog = builder.create();
 
-        //Set listeners
-        leftSquare.setOnClickListener(view -> {
+        // Set listeners
+        llLeftSquare.setOnClickListener(view -> {
             showViews();
 
-            if (flashlightEnabled && permissionGranted) {
+            if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH))
                 type = type.next();
-                startType();
-            } else {
-                if (type == Illumination.NONE) type = type.next();
-                else type = Illumination.NONE;
-            }
+            else
+                type = type == Illumination.NONE ? Illumination.SCREEN : Illumination.NONE;
+            changeIlluminationType(type);
         });
 
-        middleSquare.setOnClickListener(view -> {
+        llMiddleSquare.setOnClickListener(view -> {
             showViews();
             showPicker();
         });
 
-        rightSquare.setOnClickListener(view -> {
+        llRightSquare.setOnClickListener(view -> {
             showViews();
             mode = mode.next();
-            startMode();
+            changeScreenMode(mode);
         });
+
+        ivDismiss.setOnClickListener(view -> destroyAd());
     }
 
     @Override
@@ -202,15 +199,16 @@ public class MainActivity extends CommonActivity {
     @Override
     public void onStart() {
         super.onStart();
-        flashlightEnabled = hasFlash();
-        System.out.println("Has flashlight: " + flashlightEnabled);
 
-        layout.post(() -> {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 0);
+
+        rlMain.post(() -> {
             int color = preferences.getInt("color", Color.WHITE);
-            layout.setBackgroundColor(color);
+            rlMain.setBackgroundColor(color);
             setShapeColor(color);
-            startType();
-            startMode();
+            changeIlluminationType(type);
+            changeScreenMode(mode);
         });
     }
 
@@ -219,11 +217,11 @@ public class MainActivity extends CommonActivity {
         super.onResume();
         showViews();
 
-        //Restart lights
-        if (!illuminating && (type == Illumination.FLASH || type == Illumination.ALL))
-            turnOnLights();
+        // Restart lights
+        if (type == Illumination.FLASH || type == Illumination.ALL)
+            FlashLight.turnOn(MainActivity.this);
 
-        //Show ads
+        // Show ads
         prepareAds(false);
 
         if (thread == null) {
@@ -256,7 +254,7 @@ public class MainActivity extends CommonActivity {
                                 if (defined && colorInteger != null) {
                                     runOnUiThread(() -> {
                                         busy = true;
-                                        layout.setBackgroundColor(colorInteger);
+                                        rlMain.setBackgroundColor(colorInteger);
                                         setShapeColor(colorInteger);
                                         busy = false;
                                     });
@@ -269,7 +267,7 @@ public class MainActivity extends CommonActivity {
 
                             runOnUiThread(() -> {
                                 busy = true;
-                                layout.setBackgroundColor(color);
+                                rlMain.setBackgroundColor(color);
                                 setShapeColor(color);
                                 busy = false;
                             });
@@ -293,8 +291,8 @@ public class MainActivity extends CommonActivity {
             thread = null;
         }
 
-        //Stop lights
-        turnOffLights();
+        // Stop lights
+        FlashLight.turnOff(MainActivity.this);
     }
 
     @Override
@@ -330,42 +328,34 @@ public class MainActivity extends CommonActivity {
     public void onBackPressed() {
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (requestCode == 0)
-            permissionGranted = grantResults != null && grantResults[0] == PackageManager.PERMISSION_GRANTED;
-    }
-
-    public void startType() {
+    public void changeIlluminationType(Illumination type) {
         if (locked) return;
         locked = true;
 
         switch (type) {
             case NONE -> {
-                light.setImageResource(R.drawable.ic_turned_off);
+                ivLight.setImageResource(R.drawable.ic_turned_off);
                 layoutParams.screenBrightness = 0.0f;
                 getWindow().setAttributes(layoutParams);
-                turnOffLights();
+                FlashLight.turnOff(MainActivity.this);
             }
             case SCREEN -> {
-                light.setImageResource(R.drawable.ic_brightness);
+                ivLight.setImageResource(R.drawable.ic_brightness);
                 layoutParams.screenBrightness = 1.0f;
                 getWindow().setAttributes(layoutParams);
-                turnOffLights();
+                FlashLight.turnOff(MainActivity.this);
             }
             case FLASH -> {
-                light.setImageResource(R.drawable.ic_mobile_phone);
+                ivLight.setImageResource(R.drawable.ic_mobile_phone);
                 layoutParams.screenBrightness = 0.0f;
                 getWindow().setAttributes(layoutParams);
-                turnOnLights();
+                FlashLight.turnOn(MainActivity.this);
             }
             case ALL -> {
-                light.setImageResource(R.drawable.ic_turned_on);
+                ivLight.setImageResource(R.drawable.ic_turned_on);
                 layoutParams.screenBrightness = 1.0f;
                 getWindow().setAttributes(layoutParams);
-                if (!illuminating) turnOnLights();
+                FlashLight.turnOn(MainActivity.this);
             }
             default -> {
             }
@@ -374,19 +364,19 @@ public class MainActivity extends CommonActivity {
         locked = false;
     }
 
-    public void startMode() {
+    public void changeScreenMode(Mode mode) {
         switch (mode) {
             case DEFAULT -> {
-                pattern.setImageResource(R.drawable.ic_pantone);
-                removeGrayFilter(cube);
-                middleSquare.setClickable(true);
-                middleSquare.setEnabled(true);
+                ivPattern.setImageResource(R.drawable.ic_pantone);
+                removeGrayFilter(ivCube);
+                llMiddleSquare.setClickable(true);
+                llMiddleSquare.setEnabled(true);
             }
             case SOS -> {
-                pattern.setImageResource(R.drawable.ic_help);
-                setGrayFilter(cube);
-                middleSquare.setClickable(false);
-                middleSquare.setEnabled(false);
+                ivPattern.setImageResource(R.drawable.ic_help);
+                setGrayFilter(ivCube);
+                llMiddleSquare.setClickable(false);
+                llMiddleSquare.setEnabled(false);
             }
             default -> {
             }
@@ -398,34 +388,34 @@ public class MainActivity extends CommonActivity {
         int color = preferences.getInt("color", Color.WHITE);
 
         if (picker != null && picker.isShowing()) picker.dismiss();
-        picker = new ColorPicker(MainActivity.this, Color.red(color), Color.green(color), Color.blue(color)); //Define default color for ColorPicker
+        picker = new ColorPicker(MainActivity.this, Color.red(color), Color.green(color), Color.blue(color)); // Define default color for ColorPicker
 
-        //Set listener
+        // Set listener
         picker.setCallback(pickedColor -> {
             preferences.edit().putInt("color", pickedColor).apply();
-            layout.setBackgroundColor(pickedColor);
+            rlMain.setBackgroundColor(pickedColor);
             setShapeColor(pickedColor);
         });
         picker.show();
     }
 
     public void showViews() {
-        unlockScreenOrientation();
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        leftSquare.setVisibility(View.VISIBLE);
-        middleSquare.setVisibility(View.VISIBLE);
-        rightSquare.setVisibility(View.VISIBLE);
-        cursor.setVisibility(View.VISIBLE);
+        Screen.unlockScreenOrientation(MainActivity.this);
+        Screen.setContinuance(MainActivity.this, false);
+        llLeftSquare.setVisibility(View.VISIBLE);
+        llMiddleSquare.setVisibility(View.VISIBLE);
+        llRightSquare.setVisibility(View.VISIBLE);
+        ivCursor.setVisibility(View.VISIBLE);
         milliseconds[0] = 0;
     }
 
     public void hideViews() {
-        lockScreenOrientation();
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        leftSquare.setVisibility(View.GONE);
-        middleSquare.setVisibility(View.GONE);
-        rightSquare.setVisibility(View.GONE);
-        cursor.setVisibility(View.INVISIBLE);
+        Screen.lockScreenOrientation(MainActivity.this);
+        Screen.setContinuance(MainActivity.this, true);
+        llLeftSquare.setVisibility(View.GONE);
+        llMiddleSquare.setVisibility(View.GONE);
+        llRightSquare.setVisibility(View.GONE);
+        ivCursor.setVisibility(View.INVISIBLE);
         milliseconds[0] = 0;
     }
 
@@ -434,88 +424,14 @@ public class MainActivity extends CommonActivity {
         double a = 1 - (0.299 * Color.red(clearColor) + 0.587 * Color.green(clearColor) + 0.114 * Color.blue(clearColor)) / 255;
 
         if (a < 0.5) {
-            ((GradientDrawable) leftSquare.getBackground()).setColor(ColorUtils.setAlphaComponent(Color.BLACK, 26));
-            ((GradientDrawable) middleSquare.getBackground()).setColor(ColorUtils.setAlphaComponent(Color.BLACK, 26));
-            ((GradientDrawable) rightSquare.getBackground()).setColor(ColorUtils.setAlphaComponent(Color.BLACK, 26));
+            ((GradientDrawable) llLeftSquare.getBackground()).setColor(ColorUtils.setAlphaComponent(Color.BLACK, 26));
+            ((GradientDrawable) llMiddleSquare.getBackground()).setColor(ColorUtils.setAlphaComponent(Color.BLACK, 26));
+            ((GradientDrawable) llRightSquare.getBackground()).setColor(ColorUtils.setAlphaComponent(Color.BLACK, 26));
         } else {
-            ((GradientDrawable) leftSquare.getBackground()).setColor(ColorUtils.setAlphaComponent(Color.WHITE, 26));
-            ((GradientDrawable) middleSquare.getBackground()).setColor(ColorUtils.setAlphaComponent(Color.WHITE, 26));
-            ((GradientDrawable) rightSquare.getBackground()).setColor(ColorUtils.setAlphaComponent(Color.WHITE, 26));
+            ((GradientDrawable) llLeftSquare.getBackground()).setColor(ColorUtils.setAlphaComponent(Color.WHITE, 26));
+            ((GradientDrawable) llMiddleSquare.getBackground()).setColor(ColorUtils.setAlphaComponent(Color.WHITE, 26));
+            ((GradientDrawable) llRightSquare.getBackground()).setColor(ColorUtils.setAlphaComponent(Color.WHITE, 26));
         }
-    }
-
-    public boolean hasFlash() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 0);
-        else permissionGranted = true;
-        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
-    }
-
-    private void turnOnLights() {
-        if (permissionGranted) toggleLights(true);
-    }
-
-    private void turnOffLights() {
-        if (permissionGranted) toggleLights(false);
-    }
-
-    private void toggleLights(boolean activated) {
-        CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
-        String cameraId;
-        int size;
-
-        try {
-            size = cameraManager.getCameraIdList().length;
-        } catch (CameraAccessException e) {
-            size = 0;
-        }
-        boolean successful = false;
-
-        for (int n = -1; ++n < size; ) {
-            try {
-                cameraId = cameraManager.getCameraIdList()[n];
-                cameraManager.setTorchMode(cameraId, activated);
-                successful = true;
-                n = size;
-            } catch (Exception ignored) {
-            }
-        }
-        illuminating = activated && successful;
-    }
-
-    public void lockScreenOrientation() {
-        WindowManager windowManager = (WindowManager) this.getSystemService(Context.WINDOW_SERVICE);
-        Configuration configuration = this.getResources().getConfiguration();
-        int rotation = windowManager.getDefaultDisplay().getRotation();
-
-        // Search for the natural position of the device
-        if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE && (rotation == Surface.ROTATION_0 || rotation == Surface.ROTATION_180) || configuration.orientation == Configuration.ORIENTATION_PORTRAIT && (rotation == Surface.ROTATION_90 || rotation == Surface.ROTATION_270)) {
-            switch (rotation) { //Natural position is Landscape
-                case Surface.ROTATION_0 ->
-                        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-                case Surface.ROTATION_90 ->
-                        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT);
-                case Surface.ROTATION_180 ->
-                        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
-                case Surface.ROTATION_270 ->
-                        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-            }
-        } else {
-            switch (rotation) { //Natural position is Portrait
-                case Surface.ROTATION_0 ->
-                        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-                case Surface.ROTATION_90 ->
-                        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-                case Surface.ROTATION_180 ->
-                        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT);
-                case Surface.ROTATION_270 ->
-                        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
-            }
-        }
-    }
-
-    public void unlockScreenOrientation() {
-        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
     }
 
     private void prepareAds(boolean restarted) {
@@ -526,29 +442,12 @@ public class MainActivity extends CommonActivity {
             adView.setAdSize(AdSize.BANNER);
             adView.setAdUnitId(AdUnitId.getBannerId());
 
-            //Set listener
+            // Set listener
             adView.setAdListener(new AdListener() {
                 public void onAdLoaded() {
-                    if (!adAdded) {
-                        RelativeLayout.LayoutParams params;
-                        params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-                        params.addRule(RelativeLayout.CENTER_IN_PARENT);
-                        adContainer.addView(adView, params);
-                        adContainer.setVisibility(View.VISIBLE);
-
-                        //Define button to close ad
-                        params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-                        params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-                        params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
-                        ImageView imageView = new ImageView(MainActivity.this);
-                        imageView.setAlpha(0.8F);
-                        imageView.setImageResource(R.drawable.cancel);
-                        adContainer.addView(imageView, params);
-
-                        //Set listener
-                        imageView.setOnClickListener(view -> destroyAd());
-                        adAdded = true;
-                    }
+                    llAdContent.addView(adView);
+                    rlAdContainer.setVisibility(View.VISIBLE);
+                    adAdded = true;
                 }
 
                 public void onAdFailedToLoad(LoadAdError error) {
@@ -568,8 +467,8 @@ public class MainActivity extends CommonActivity {
         if (adView != null) {
             adView.destroy();
             adView.destroyDrawingCache();
-            adContainer.setVisibility(View.GONE);
-            adContainer.removeAllViews();
+            rlAdContainer.setVisibility(View.GONE);
+            llAdContent.removeAllViews();
             adView = null;
             adAdded = false;
         }
