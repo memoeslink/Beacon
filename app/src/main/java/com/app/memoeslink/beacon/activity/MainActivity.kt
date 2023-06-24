@@ -62,8 +62,10 @@ class MainActivity : CommonActivity() {
     private var animation: ValueAnimator? = null
 
     private var job: Job? = null
+    private var continuousJob: Job? = null
     private var adAdded: Boolean = false
     private var locked: Boolean = false
+    private var milliseconds: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.DefaultTheme)
@@ -174,6 +176,35 @@ class MainActivity : CommonActivity() {
             Flashlight.turnOn(this@MainActivity)
         }
 
+        // Start main job
+        if (continuousJob == null) {
+            continuousJob = lifecycleScope.launch {
+                while (true) {
+                    delay(1)
+                    val screenMode = ScreenMode.values()[SharedPrefUtils.getIntData(
+                        this@MainActivity, "pref_screenMode"
+                    )]
+
+                    if (screenMode == ScreenMode.SOS) {
+                        if (milliseconds < 6800) {
+                            var screenColor: Int? = null
+
+                            if (SOS_SEQUENCE.containsKey(milliseconds)) screenColor =
+                                SOS_SEQUENCE[milliseconds]
+
+                            if (screenColor != null) {
+                                runOnUiThread {
+                                    changeBackgroundColor(screenColor)
+                                }
+                            }
+                            milliseconds++
+                        } else milliseconds = 0
+                    }
+                }
+            }
+            continuousJob?.start()
+        }
+
         // Show ads
         prepareAds(false)
     }
@@ -191,6 +222,8 @@ class MainActivity : CommonActivity() {
 
     override fun onPause() {
         super.onPause()
+        continuousJob?.cancel()
+        continuousJob = null
 
         // Stop lights
         Flashlight.turnOff(this@MainActivity)
