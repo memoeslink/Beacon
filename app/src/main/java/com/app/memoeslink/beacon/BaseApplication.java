@@ -12,8 +12,13 @@ public class BaseApplication extends Application {
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
 
         // Initialize SharedPreferences
-        SharedPrefUtils.saveData(getApplicationContext(), "pref_screenColor", Color.WHITE);
-        SharedPrefUtils.saveData(getApplicationContext(), "pref_illuminationType", 0);
-        SharedPrefUtils.saveData(getApplicationContext(), "pref_screenMode", 0);
+        if (!SharedPrefUtils.has(getApplicationContext(), "pref_screenColor"))
+            SharedPrefUtils.saveData(getApplicationContext(), "pref_screenColor", Color.WHITE);
+
+        if (!SharedPrefUtils.has(getApplicationContext(), "pref_illuminationType"))
+            SharedPrefUtils.saveData(getApplicationContext(), "pref_illuminationType", 0);
+
+        if (!SharedPrefUtils.has(getApplicationContext(), "pref_screenMode"))
+            SharedPrefUtils.saveData(getApplicationContext(), "pref_screenMode", 0);
     }
 }

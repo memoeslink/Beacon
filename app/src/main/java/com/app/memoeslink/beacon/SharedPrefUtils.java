@@ -24,6 +24,7 @@ import android.content.SharedPreferences.Editor;
  * The type Shared pref utils.
  *
  * @author Nishant Srivastava
+ * @author Guillermo Almaguer (Memoeslink)
  */
 public class SharedPrefUtils {
 
@@ -31,6 +32,17 @@ public class SharedPrefUtils {
 
     private SharedPrefUtils() {
         throw new UnsupportedOperationException("Should not create instance of Util class. Please use as static..");
+    }
+
+    /**
+     * Checks if preference exists.
+     *
+     * @param context the context
+     * @param key     the key
+     * @return a boolean indicating if the preference exists
+     */
+    static public boolean has(Context context, String key) {
+        return context.getSharedPreferences(PREF_APP, Context.MODE_PRIVATE).contains(key);
     }
 
     /**
