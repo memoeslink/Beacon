@@ -20,6 +20,7 @@ import android.widget.RelativeLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
+import androidx.lifecycle.lifecycleScope
 import com.app.memoeslink.beacon.AdUnitId
 import com.app.memoeslink.beacon.BuildConfig
 import com.app.memoeslink.beacon.Flashlight
@@ -36,6 +37,10 @@ import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.system.exitProcess
 
 class MainActivity : CommonActivity() {
@@ -56,10 +61,9 @@ class MainActivity : CommonActivity() {
     private var layoutParams: WindowManager.LayoutParams? = null
     private var animation: ValueAnimator? = null
 
+    private var job: Job? = null
     private var adAdded: Boolean = false
-    private var running: Boolean = false
     private var locked: Boolean = false
-    private var thread: Thread? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.DefaultTheme)
@@ -174,14 +178,19 @@ class MainActivity : CommonActivity() {
         prepareAds(false)
     }
 
+    override fun onPostResume() {
+        super.onPostResume()
+
+        job = lifecycleScope.launch(Dispatchers.IO) {
+            delay(10000)
+            runOnUiThread { hidePanel() }
+            job = null
+        }
+        job?.start()
+    }
+
     override fun onPause() {
         super.onPause()
-
-        thread?.takeIf { it.isAlive }?.let {
-            running = false
-            thread?.interrupt()
-            thread = null
-        }
 
         // Stop lights
         Flashlight.turnOff(this@MainActivity)
@@ -210,6 +219,22 @@ class MainActivity : CommonActivity() {
             }
         }
         return false
+    }
+
+    override fun onUserInteraction() {
+        super.onUserInteraction()
+
+        if (job != null) {
+            job?.cancel()
+            job = null
+        }
+
+        job = lifecycleScope.launch(Dispatchers.IO) {
+            delay(10000)
+            runOnUiThread { hidePanel() }
+            job = null
+        }
+        job?.start()
     }
 
     private fun changeBackgroundColor(color: Int) {
