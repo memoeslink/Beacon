@@ -1,43 +1,34 @@
-package com.app.memoeslink.beacon;
+package com.app.memoeslink.beacon.activity
 
-import android.content.Context;
-import android.content.ContextWrapper;
-import android.content.res.Configuration;
-import android.content.res.Resources;
-import android.os.Bundle;
-import android.os.LocaleList;
+import android.content.Context
+import android.content.ContextWrapper
+import android.os.LocaleList
+import androidx.appcompat.app.AppCompatActivity
+import java.util.Locale
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
+open class CommonActivity : AppCompatActivity() {
 
-import java.util.Locale;
-
-public class CommonActivity extends AppCompatActivity {
-    @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    override fun attachBaseContext(context: Context) {
+        var currentContext = context
+        currentContext = wrap(currentContext)
+        super.attachBaseContext(currentContext)
     }
 
-    @Override
-    protected void attachBaseContext(Context context) {
-        context = wrap(context);
-        super.attachBaseContext(context);
-    }
+    private fun wrap(context: Context): ContextWrapper {
+        var currentContext = context
+        var language = Locale.getDefault().language
 
-    public ContextWrapper wrap(Context context) {
-        String language = Locale.getDefault().getLanguage();
-
-        if (!Locale.getDefault().getLanguage().equals("en") && !Locale.getDefault().getLanguage().equals("es"))
-            language = "en";
-        Locale locale = new Locale(language);
-        Locale.setDefault(locale);
-        Resources res = context.getResources();
-        Configuration configuration = res.getConfiguration();
-        configuration.setLocale(locale);
-        LocaleList localeList = new LocaleList(locale);
-        LocaleList.setDefault(localeList);
-        configuration.setLocales(localeList);
-        context = context.createConfigurationContext(configuration);
-        return new ContextWrapper(context);
+        if (Locale.getDefault().language != "en" && Locale.getDefault().language != "es") language =
+            "en"
+        val locale = Locale(language)
+        Locale.setDefault(locale)
+        val res = currentContext.resources
+        val configuration = res.configuration
+        configuration.setLocale(locale)
+        val localeList = LocaleList(locale)
+        LocaleList.setDefault(localeList)
+        configuration.setLocales(localeList)
+        currentContext = currentContext.createConfigurationContext(configuration)
+        return ContextWrapper(currentContext)
     }
 }

@@ -5,10 +5,10 @@ import android.content.pm.PackageManager;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraManager;
 
-public final class FlashLight {
+public final class Flashlight {
     private static boolean illuminating = false;
 
-    private FlashLight() {
+    private Flashlight() {
     }
 
     public static void turnOn(Context context) {

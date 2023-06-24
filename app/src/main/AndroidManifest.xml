@@ -23,7 +23,7 @@
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen">
         <activity
-            android:name="com.app.memoeslink.beacon.MainActivity"
+            android:name="com.app.memoeslink.beacon.activity.MainActivity"
             android:configChanges="orientation|screenSize|screenLayout"
             android:exported="true">
             <intent-filter>
