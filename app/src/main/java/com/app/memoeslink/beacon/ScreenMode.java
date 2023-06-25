@@ -3,7 +3,8 @@ package com.app.memoeslink.beacon;
 public enum ScreenMode {
     DEFAULT,
     SOS,
-    RAINBOW;
+    RAINBOW,
+    BLINK;
 
     public ScreenMode previous() {
         return values()[(this.ordinal() + -1 + values().length) % values().length];

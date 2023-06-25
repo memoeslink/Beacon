@@ -22,7 +22,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:padding="5dp"
-            app:srcCompat="@drawable/ic_cube"></androidx.appcompat.widget.AppCompatImageView>
+            app:srcCompat="@drawable/ic_cube" />
     </LinearLayout>
 
     <LinearLayout
@@ -41,7 +41,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:padding="5dp"
-            app:srcCompat="@drawable/ic_turned_off"></androidx.appcompat.widget.AppCompatImageView>
+            app:srcCompat="@drawable/ic_turned_off" />
     </LinearLayout>
 
     <LinearLayout
@@ -60,7 +60,26 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:padding="5dp"
-            app:srcCompat="@drawable/ic_pantone"></androidx.appcompat.widget.AppCompatImageView>
+            app:srcCompat="@drawable/ic_pantone" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/bottom_square"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_below="@+id/middle_square"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/square"
+        android:clickable="true"
+        android:orientation="vertical">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/about_icon"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="5dp"
+            app:srcCompat="@drawable/ic_about" />
     </LinearLayout>
 
     <androidx.appcompat.widget.AppCompatImageView
@@ -71,7 +90,7 @@
         android:layout_marginLeft="-10dp"
         android:layout_marginTop="-10dp"
         android:layout_toRightOf="@+id/middle_square"
-        app:srcCompat="@drawable/ic_pointer"></androidx.appcompat.widget.AppCompatImageView>
+        app:srcCompat="@drawable/ic_pointer" />
 
     <RelativeLayout
         android:id="@+id/ad_container"

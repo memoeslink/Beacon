@@ -1,6 +1,7 @@
 package com.app.memoeslink.beacon.activity
 
 import android.Manifest
+import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
 import android.content.pm.PackageManager
 import android.content.res.Configuration
@@ -50,6 +51,7 @@ class MainActivity : CommonActivity() {
     private var llLeftSquare: LinearLayout? = null
     private var llMiddleSquare: LinearLayout? = null
     private var llRightSquare: LinearLayout? = null
+    private var llBottomSquare: LinearLayout? = null
     private var ivCube: ImageView? = null
     private var ivLight: ImageView? = null
     private var ivPattern: ImageView? = null
@@ -78,6 +80,7 @@ class MainActivity : CommonActivity() {
         llLeftSquare = findViewById(R.id.left_square)
         llMiddleSquare = findViewById(R.id.middle_square)
         llRightSquare = findViewById(R.id.right_square)
+        llBottomSquare = findViewById(R.id.bottom_square)
         ivCube = findViewById(R.id.cube_icon)
         ivLight = findViewById(R.id.light_icon)
         ivPattern = findViewById(R.id.pattern_icon)
@@ -124,6 +127,8 @@ class MainActivity : CommonActivity() {
             )
             changeScreenMode(screenMode)
         }
+
+        llBottomSquare?.setOnClickListener {}
 
         ivDismiss?.setOnClickListener {
             destroyAd()
@@ -293,6 +298,11 @@ class MainActivity : CommonActivity() {
                     Color.BLACK, 26
                 )
             )
+            (llBottomSquare?.background as GradientDrawable).setColor(
+                ColorUtils.setAlphaComponent(
+                    Color.BLACK, 26
+                )
+            )
         } else {
             (llLeftSquare?.background as GradientDrawable).setColor(
                 ColorUtils.setAlphaComponent(
@@ -305,6 +315,11 @@ class MainActivity : CommonActivity() {
                 )
             )
             (llRightSquare?.background as GradientDrawable).setColor(
+                ColorUtils.setAlphaComponent(
+                    Color.WHITE, 26
+                )
+            )
+            (llBottomSquare?.background as GradientDrawable).setColor(
                 ColorUtils.setAlphaComponent(
                     Color.WHITE, 26
                 )
@@ -349,10 +364,14 @@ class MainActivity : CommonActivity() {
     }
 
     private fun changeScreenMode(mode: ScreenMode) {
+        llMiddleSquare?.isClickable = false
+        llMiddleSquare?.isEnabled = false
+        ivCube?.let { applyGrayFilter(it) }
+        animation?.cancel()
+        animation = null
+
         when (mode) {
             ScreenMode.DEFAULT -> {
-                animation?.cancel()
-                animation = null
                 val screenColor = SharedPrefUtils.getIntData(this@MainActivity, "pref_screenColor")
                 changeBackgroundColor(screenColor)
                 ivPattern?.setImageResource(R.drawable.ic_pantone)
@@ -361,12 +380,7 @@ class MainActivity : CommonActivity() {
                 llMiddleSquare?.isEnabled = true
             }
 
-            ScreenMode.SOS -> {
-                ivPattern?.setImageResource(R.drawable.ic_help)
-                ivCube?.let { applyGrayFilter(it) }
-                llMiddleSquare?.isClickable = false
-                llMiddleSquare?.isEnabled = false
-            }
+            ScreenMode.SOS -> ivPattern?.setImageResource(R.drawable.ic_help)
 
             ScreenMode.RAINBOW -> {
                 animation = ValueAnimator.ofFloat(0.0F, 1.0F)
@@ -379,10 +393,22 @@ class MainActivity : CommonActivity() {
                 animation?.repeatCount = Animation.INFINITE
                 animation?.start()
 
-                ivPattern?.setImageResource(R.drawable.ic_cube)
-                ivCube?.let { applyGrayFilter(it) }
-                llMiddleSquare?.isClickable = false
-                llMiddleSquare?.isEnabled = false
+                ivPattern?.setImageResource(R.drawable.ic_rainbow)
+            }
+
+            ScreenMode.BLINK -> {
+                animation = ValueAnimator()
+                animation?.setIntValues(Color.WHITE, Color.BLACK)
+                animation?.setEvaluator(ArgbEvaluator())
+                animation?.addUpdateListener { animation ->
+                    val animatedValue = animation.animatedValue as Int
+                    rlMain?.setBackgroundColor(animatedValue)
+                }
+                animation?.repeatCount = Animation.INFINITE
+                animation?.repeatMode = ValueAnimator.REVERSE
+                animation?.start()
+
+                ivPattern?.setImageResource(R.drawable.ic_blink)
             }
         }
     }
@@ -412,6 +438,7 @@ class MainActivity : CommonActivity() {
         llLeftSquare?.visibility = View.VISIBLE
         llMiddleSquare?.visibility = View.VISIBLE
         llRightSquare?.visibility = View.VISIBLE
+        llBottomSquare?.visibility = View.VISIBLE
         ivCursor?.visibility = View.VISIBLE
     }
 
@@ -421,6 +448,7 @@ class MainActivity : CommonActivity() {
         llLeftSquare?.visibility = View.GONE
         llMiddleSquare?.visibility = View.GONE
         llRightSquare?.visibility = View.GONE
+        llBottomSquare?.visibility = View.GONE
         ivCursor?.visibility = View.INVISIBLE
     }
 
