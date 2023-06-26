@@ -7,7 +7,7 @@ public enum IlluminationType {
     ALL;
 
     public IlluminationType previous() {
-        return values()[(this.ordinal() + -1 + values().length) % values().length];
+        return values()[(this.ordinal() + values().length - 1) % values().length];
     }
 
     public IlluminationType next() {
