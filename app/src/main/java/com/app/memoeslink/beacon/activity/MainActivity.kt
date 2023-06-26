@@ -105,7 +105,8 @@ class MainActivity : CommonActivity() {
                 this@MainActivity, "pref_illuminationType"
             )].let { illuminationType ->
                 if (ContextCompat.checkSelfPermission(
-                        this@MainActivity, Manifest.permission.ACCESS_FINE_LOCATION
+                        this@MainActivity,
+                        Manifest.permission.CAMERA
                     ) == PackageManager.PERMISSION_GRANTED
                 ) illuminationType.next()
                 else if (illuminationType == IlluminationType.SCREEN) illuminationType.previous()
