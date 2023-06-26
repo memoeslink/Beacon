@@ -104,8 +104,12 @@ class MainActivity : CommonActivity() {
             val illuminationType = IlluminationType.values()[SharedPrefUtils.getIntData(
                 this@MainActivity, "pref_illuminationType"
             )].let { illuminationType ->
-                if (packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)) illuminationType.next()
-                else illuminationType.next().next()
+                if (ContextCompat.checkSelfPermission(
+                        this@MainActivity, Manifest.permission.ACCESS_FINE_LOCATION
+                    ) == PackageManager.PERMISSION_GRANTED
+                ) illuminationType.next()
+                else if (illuminationType == IlluminationType.SCREEN) illuminationType.previous()
+                else illuminationType.next()
             }
             SharedPrefUtils.saveData(
                 this@MainActivity, "pref_illuminationType", illuminationType.ordinal
