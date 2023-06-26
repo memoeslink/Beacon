@@ -7,7 +7,7 @@
         <br><b>Versión: %2$s (%3$d)</b>
         <br><br>2014-%4$d Memoeslink Futura
         <br><small>Guillermo Almaguer (Memoeslink)</small>
-        <br><small><a href="mailto:memocad@gmail.com">memocad@gmail.com<a></small>
+        <br><small><a href="mailto:memocad@gmail.com">memocad@gmail.com</a></small>
         ]]>
     </string>
     <string name="app_name">&appname;</string>
@@ -17,4 +17,6 @@
         <item>Ver configuración</item>
         <item>Salir</item>
     </string-array>
+    <string name="privacy_policy">Política de privacidad</string>
+    <string name="terms_and_conditions">Términos y condiciones</string>
 </resources>
