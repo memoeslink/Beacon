@@ -3,6 +3,7 @@ package com.app.memoeslink.beacon.activity
 import android.Manifest
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Color
@@ -128,7 +129,10 @@ class MainActivity : CommonActivity() {
             changeScreenMode(screenMode)
         }
 
-        llBottomSquare?.setOnClickListener {}
+        llBottomSquare?.setOnClickListener {
+            val intent = Intent(this@MainActivity, AboutActivity::class.java)
+            startActivity(intent)
+        }
 
         ivDismiss?.setOnClickListener {
             destroyAd()
@@ -227,6 +231,8 @@ class MainActivity : CommonActivity() {
 
     override fun onPause() {
         super.onPause()
+        job?.cancel()
+        job = null
         continuousJob?.cancel()
         continuousJob = null
 
