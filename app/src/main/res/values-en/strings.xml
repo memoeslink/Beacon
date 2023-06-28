@@ -11,12 +11,6 @@
         ]]>
     </string>
     <string name="app_name">&appname;</string>
-    <string name="action_exit">Exit</string>
-    <string name="action_cancel">Cancel</string>
-    <string-array name="options">
-        <item>Go to settings</item>
-        <item>Exit</item>
-    </string-array>
     <string name="privacy_policy">Privacy Policy</string>
     <string name="terms_and_conditions">Terms &amp; Conditions</string>
 </resources>

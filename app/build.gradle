@@ -7,8 +7,8 @@ android {
         applicationId "com.app.memoeslink.beacon"
         minSdk 26
         targetSdk 34
-        versionCode 12
-        versionName "1.1.1"
+        versionCode 13
+        versionName '1.1.2'
         setProperty("archivesBaseName", "Beacon-$versionName")
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         vectorDrawables.useSupportLibrary = true
@@ -25,11 +25,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility JavaVersion.VERSION_19
+        targetCompatibility JavaVersion.VERSION_19
     }
     kotlinOptions {
-        jvmTarget = '17'
+        jvmTarget = '19'
     }
     namespace 'com.app.memoeslink.beacon'
     androidResources {
